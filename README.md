@@ -49,7 +49,7 @@ The following preprocessing steps were applied:
 - Extracting image bytes from Parquet columns  
 - Converting byte data into pixel arrays  
 - Image normalization  
-- Resizing images to a fixed resolution (e.g., 224 × 224)  
+- Resizing images to a fixed resolution (e.g., 128 × 128)  
 - Channel handling for CNN compatibility  
 - Label encoding and one-hot encoding  
 - Train–test split  
@@ -107,8 +107,7 @@ A detailed classification report was generated to analyze class-wise performance
 
 ---
 
-## Future Improvements
-- Apply transfer learning using models such as DenseNet or EfficientNet  
+## Future Improvements  
 - Implement Grad-CAM for model explainability  
 - Improve recall for minority disease classes  
 - Apply advanced data augmentation techniques  
