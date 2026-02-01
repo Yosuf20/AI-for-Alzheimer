@@ -51,20 +51,20 @@ The following preprocessing steps were applied:
 - Image normalization  
 - Resizing images to a fixed resolution (e.g., 128 × 128)  
 - Channel handling for CNN compatibility  
-- Label encoding and one-hot encoding  
+- Label encoding  
 - Train–test split  
 
 ---
 
 ## Model Architecture
-A basic CNN model was implemented consisting of:
+A transfer learning CNN model was implemented using VGG19 pretrained on ImageNet as the feature extractor. The architecture includes:
 
-- Convolutional layers for feature extraction  
-- ReLU activation functions  
-- MaxPooling layers  
-- Dropout layers to reduce overfitting  
-- Fully connected (Dense) layers  
-- Softmax output layer for multi-class classification  
+-VGG19 convolutional base for feature extraction
+-The last 5 convolutional layers were fine-tuned to adapt to the target dataset
+-Global Average Pooling (GAP) layer to reduce the spatial dimensions and prevent overfitting
+-Dense layer (256 units, ReLU activation) for learning high-level features
+-Dropout layer (0.5) to reduce overfitting
+-Softmax output layer for multi-class classification 
 
 ---
 
@@ -81,21 +81,20 @@ The model was evaluated using the following metrics:
 
 | Metric | Value |
 |------|------|
-| Training Accuracy | ______ |
-| Validation Accuracy | ______ |
-| Test Accuracy | ______ |
-| Precision | ______ |
-| Recall | ______ |
-| F1-Score | ______ |
-
-(Values will be updated after final evaluation)
+| Training Accuracy | 0.96 |
+| Validation Accuracy | 0.89 |
+| Test Accuracy | 0.87 |
 
 ---
 
 ## Classification Report
 A detailed classification report was generated to analyze class-wise performance, which is especially important in medical diagnosis tasks where recall plays a critical role.
+precision    recall  f1-score   support
 
-(Add classification report output or screenshot here)
+           0       0.99      0.78      0.87       172
+           1       0.76      0.87      0.81        15
+           2       0.83      0.98      0.90       634
+           3       0.93      0.76      0.84       459
 
 ---
 
