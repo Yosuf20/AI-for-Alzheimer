@@ -119,9 +119,4 @@ This project demonstrates the application of deep learning for medical image cla
 
 ---
 
-## Author
-Yosuf  
-B.Tech CSE (Artificial Intelligence)  
-Jamia Hamdard  
-
 ---
