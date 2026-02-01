@@ -90,11 +90,11 @@ The model was evaluated using the following metrics:
 ## Classification Report
 A detailed classification report was generated to analyze class-wise performance, which is especially important in medical diagnosis tasks where recall plays a critical role.
 | No | Precision | Recall | F1-score | Support |
-
-| 0 | 0.99 | 0.78 | 0.87 | 172 |
-| 1 | 0.76 | 0.87 | 0.81 | 15 |
-| 2 | 0.83 | 0.98 | 0.90 | 634 |
-| 3 | 0.93 | 0.76 | 0.84 | 459 |
+|----|-----------|--------|----------|---------|
+| 0  | 0.99      | 0.78   | 0.87     | 172     |
+| 1  | 0.76      | 0.87   | 0.81     | 15      |
+| 2  | 0.83      | 0.98   | 0.90     | 634     |
+| 3  | 0.93      | 0.76   | 0.84     | 459     |
 
 ---
 
