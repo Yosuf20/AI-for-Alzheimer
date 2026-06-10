@@ -1,0 +1,5 @@
+alz_env/
+Dataset/
+.vscode/
+__pycache__/
+*.keras
