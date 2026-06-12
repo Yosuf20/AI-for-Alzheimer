@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alzheimer's MRI Detection</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.30.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f3;
+      --bg-tertiary: #eeede9;
+      --text: #1a1a18;
+      --text-secondary: #5c5c58;
+      --text-tertiary: #9a9994;
+      --border: rgba(0,0,0,0.12);
+      --border-mid: rgba(0,0,0,0.2);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --teal: #1D9E75;
+      --teal-dark: #0F6E56;
+      --teal-light: #E1F5EE;
+      --teal-text: #085041;
+      --amber: #EF9F27;
+      --orange: #E27A3A;
+      --red: #E24B4A;
+      --red-dark: #A32D2D;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1c; --bg-secondary: #2a2a27; --bg-tertiary: #222220;
+        --text: #f0efeb; --text-secondary: #a8a79f; --text-tertiary: #6a6a64;
+        --border: rgba(255,255,255,0.1); --border-mid: rgba(255,255,255,0.18);
+        --teal-light: #0a2d22; --teal-text: #5DCAA5;
+      }
+    }
+
+    html { background: var(--bg-tertiary); min-height: 100vh; }
+    body { font-family: var(--font); color: var(--text); background: var(--bg-tertiary); min-height: 100vh; }
+
+    .page { max-width: 660px; margin: 0 auto; padding: 2.5rem 1.25rem 3rem; }
+
+    .header { margin-bottom: 2rem; }
+    .header-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .badge { background: var(--teal-light); color: var(--teal-text); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.05em; text-transform: uppercase; }
+    .header h1 { font-size: 24px; font-weight: 600; color: var(--text); }
+    .header p { font-size: 14px; color: var(--text-secondary); margin-top: 5px; line-height: 1.6; }
+
+    .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+
+    .section-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-tertiary); margin-bottom: 1rem; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .field-row.full { grid-template-columns: 1fr; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    .field input {
+      height: 40px; border: 0.5px solid var(--border-mid); border-radius: var(--radius-md);
+      padding: 0 12px; font-size: 14px; background: var(--bg-secondary);
+      color: var(--text); font-family: var(--font); transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(29,158,117,0.15); }
+    .field input::placeholder { color: var(--text-tertiary); }
+
+    .upload-area {
+      border: 1.5px dashed var(--border-mid); border-radius: var(--radius-lg);
+      padding: 2.25rem 1rem; text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .upload-area:hover, .upload-area.drag-over { border-color: var(--teal); background: rgba(29,158,117,0.04); }
+    .upload-icon { font-size: 36px; color: var(--text-tertiary); display: block; margin-bottom: 10px; }
+    .upload-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+    .upload-sub { font-size: 12px; color: var(--text-tertiary); }
+    .upload-sub span { color: var(--teal); font-weight: 500; }
+    #file-input { display: none; }
+
+    .preview-wrap { position: relative; margin-top: 12px; }
+    .preview-img { width: 100%; max-height: 240px; object-fit: contain; border-radius: var(--radius-md); background: var(--bg-secondary); border: 0.5px solid var(--border); display: block; }
+    .preview-filename { font-size: 12px; color: var(--text-tertiary); text-align: center; margin-top: 8px; }
+    .remove-btn { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; background: var(--bg); border: 0.5px solid var(--border-mid); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 14px; transition: background 0.1s; }
+    .remove-btn:hover { background: var(--bg-secondary); color: var(--red); }
+
+    .error-msg { font-size: 12px; color: var(--red-dark); margin-top: 8px; display: none; align-items: center; gap: 5px; }
+
+    .submit-btn { width: 100%; height: 44px; background: var(--teal); color: #fff; border: none; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--font); display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s, transform 0.1s; margin-top: 6px; }
+    .submit-btn:hover { background: var(--teal-dark); }
+    .submit-btn:active { transform: scale(0.99); }
+    .submit-btn:disabled { background: var(--bg-secondary); color: var(--text-tertiary); border: 0.5px solid var(--border); cursor: not-allowed; transform: none; }
+
+    #loading-section { display: none; }
+    .loading-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1rem; gap: 14px; }
+    .spinner { width: 36px; height: 36px; border: 2.5px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.75s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: var(--text-secondary); }
+    .loading-steps { display: flex; gap: 6px; margin-top: 4px; }
+    .loading-steps span { width: 6px; height: 6px; border-radius: 50%; background: var(--border-mid); transition: background 0.3s; }
+    .loading-steps span.active { background: var(--teal); }
+
+    #result-section { display: none; }
+    .result-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 1rem; }
+    .result-header { padding: 1rem 1.5rem; background: var(--bg-secondary); border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .result-header h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.07em; }
+    .patient-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--bg); border: 0.5px solid var(--border-mid); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--text-secondary); }
+
+    .result-body { padding: 1.5rem; }
+    .result-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 1rem; }
+    .pred-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .pred-class { font-size: 23px; font-weight: 600; line-height: 1.2; }
+    .severity-row { display: flex; align-items: center; gap: 7px; margin-top: 7px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .severity-text { font-size: 12px; color: var(--text-secondary); }
+    .conf-block { text-align: right; flex-shrink: 0; }
+    .conf-val { font-size: 28px; font-weight: 600; line-height: 1; }
+    .conf-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .conf-bar-wrap { height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden; border: 0.5px solid var(--border); margin-bottom: 1rem; }
+    .conf-bar { height: 100%; border-radius: 4px; transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
+    .desc-text { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+    .divider { height: 0.5px; background: var(--border); margin: 1rem 0; }
+
+    .all-classes-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin-bottom: 10px; }
+    .class-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+    .class-row:last-child { margin-bottom: 0; }
+    .class-lbl { font-size: 12px; color: var(--text-secondary); width: 148px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-bar-wrap { flex: 1; height: 5px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; border: 0.5px solid var(--border); }
+    .mini-bar { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+    .mini-val { font-size: 11px; color: var(--text-tertiary); min-width: 34px; text-align: right; flex-shrink: 0; }
+    .class-row.winner .class-lbl { color: var(--text); font-weight: 600; }
+    .class-row.winner .mini-val { color: var(--text-secondary); font-weight: 500; }
+
+    .patient-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+    .meta-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 4px 10px; font-size: 12px; color: var(--text-secondary); }
+
+    .reset-btn { width: 100%; height: 40px; background: transparent; color: var(--text-secondary); border: 0.5px solid var(--border-mid); border-radius: var(--radius-md); font-size: 13px; cursor: pointer; font-family: var(--font); display: flex; align-items: center; justify-content: center; gap: 7px; transition: background 0.12s; }
+    .reset-btn:hover { background: var(--bg-secondary); }
+
+    .api-error { background: #FCEBEB; border: 0.5px solid #F09595; border-radius: var(--radius-md); padding: 12px 14px; font-size: 13px; color: #791F1F; display: none; align-items: flex-start; gap: 8px; margin-bottom: 1rem; line-height: 1.55; }
+    .api-error i { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    @media (prefers-color-scheme: dark) {
+      .api-error { background: #2d1515; border-color: #5a2020; color: #f09595; }
+    }
+    @media (max-width: 480px) {
+      .page { padding: 1.5rem 1rem 2rem; }
+      .field-row { grid-template-columns: 1fr; }
+      .result-top { flex-direction: column; gap: 8px; }
+      .conf-block { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="header-top">
+      <span class="badge">Alzheimer's Detection</span>
+    </div>
+    <h1>MRI Brain Scan Analysis</h1>
+    <p>Enter patient details and upload a brain MRI scan to classify the stage of cognitive decline.</p>
+  </div>
+
+  <!-- API error banner -->
+  <div class="api-error" id="api-error">
+    <i class="ti ti-alert-circle"></i>
+    <span id="api-error-text">Something went wrong.</span>
+  </div>
+
+  <!-- ── FORM ── -->
+  <div id="form-section">
+    <div class="card">
+      <div class="section-label">Patient information</div>
+      <div class="field-row full">
+        <div class="field">
+          <label for="p-name">Full name</label>
+          <input type="text" id="p-name" placeholder="e.g. Arjun Sharma" autocomplete="off" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="p-age">Age</label>
+          <input type="number" id="p-age" placeholder="e.g. 67" min="1" max="120" />
+        </div>
+        <div class="field">
+          <label for="p-dob">Date of birth</label>
+          <input type="date" id="p-dob" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">MRI scan</div>
+      <div id="upload-area" class="upload-area">
+        <i class="ti ti-brain upload-icon"></i>
+        <div class="upload-title">Upload brain MRI image</div>
+        <div class="upload-sub">PNG, JPG &mdash; <span>drag &amp; drop</span> or <span>click to browse</span></div>
+        <input type="file" id="file-input" accept="image/png,image/jpeg,image/jpg" />
+      </div>
+      <div id="preview-section" style="display:none;">
+        <div class="preview-wrap">
+          <img id="preview-img" class="preview-img" alt="MRI preview" />
+          <button class="remove-btn" id="remove-btn" title="Remove image"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="preview-filename" id="preview-filename"></div>
+      </div>
+      <div class="error-msg" id="upload-error">
+        <i class="ti ti-alert-circle" style="font-size:14px;"></i>
+        Please upload an MRI image before running analysis.
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submit-btn">
+      <i class="ti ti-scan"></i>
+      Analyse MRI scan
+    </button>
+  </div>
+
+  <!-- ── LOADING ── -->
+  <div id="loading-section">
+    <div class="card">
+      <div class="loading-inner">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Sending scan to server...</div>
+        <div class="loading-steps">
+          <span id="step-0" class="active"></span>
+          <span id="step-1"></span>
+          <span id="step-2"></span>
+          <span id="step-3"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RESULT ── -->
+  <div id="result-section">
+    <div class="result-card">
+      <div class="result-header">
+        <h3>Analysis result</h3>
+        <div class="patient-pill">
+          <i class="ti ti-user" style="font-size:13px;"></i>
+          <span id="result-patient-name">Patient</span>
+        </div>
+      </div>
+      <div class="result-body">
+        <div class="result-top">
+          <div>
+            <div class="pred-label">Predicted class</div>
+            <div class="pred-class" id="result-class">—</div>
+            <div class="severity-row">
+              <span class="status-dot" id="result-dot"></span>
+              <span class="severity-text" id="result-severity">—</span>
+            </div>
+          </div>
+          <div class="conf-block">
+            <div class="conf-val" id="result-conf">—</div>
+            <div class="conf-label">Confidence</div>
+          </div>
+        </div>
+
+        <div class="conf-bar-wrap">
+          <div class="conf-bar" id="result-bar" style="width:0%;"></div>
+        </div>
+
+        <div class="desc-text" id="result-desc"></div>
+
+        <div id="patient-meta-row" class="patient-meta" style="margin-top:12px;"></div>
+
+        <div class="divider"></div>
+
+        <div class="all-classes-label">Class probabilities</div>
+        <div id="all-classes-list"></div>
+
+        <div class="divider"></div>
+
+        <div style="font-size:11px; color:var(--text-tertiary); line-height:1.6;">
+          <i class="ti ti-alert-triangle" style="font-size:13px; vertical-align:-2px; margin-right:4px; color:var(--amber);"></i>
+          This result is generated by an AI model and is intended for research/assistive purposes only. It does not constitute a clinical diagnosis. Please consult a qualified neurologist for medical evaluation.
+        </div>
+      </div>
+    </div>
+
+    <button class="reset-btn" id="reset-btn">
+      <i class="ti ti-refresh" style="font-size:14px;"></i>
+      New analysis
+    </button>
+  </div>
+
+</div>
+
+<script>
+
+  const API_BASE = '';
+
+  const CLASS_META = {
+    'Non Demented': {
+      color: '#1D9E75', dot: '#1D9E75',
+      severity: 'No detectable signs of dementia',
+      desc: 'The MRI scan shows no detectable signs of Alzheimer\'s-related atrophy or dementia. Brain structure appears within normal parameters for the patient\'s age group. Routine follow-up is recommended.'
+    },
+    'Very Mild Demented': {
+      color: '#EF9F27', dot: '#BA7517',
+      severity: 'Very mild cognitive decline',
+      desc: 'Subtle changes consistent with early-stage cognitive decline are detected. The patient may experience minor memory lapses, though daily functioning is largely unaffected. Regular monitoring and lifestyle interventions are advisable.'
+    },
+    'Mild Demented': {
+      color: '#E27A3A', dot: '#C0561E',
+      severity: 'Mild cognitive impairment',
+      desc: 'Moderate atrophy patterns suggest mild dementia. Noticeable memory and cognitive difficulties may be present. A clinical neuropsychological evaluation is recommended along with specialist follow-up.'
+    },
+    'Moderate Demented': {
+      color: '#E24B4A', dot: '#A32D2D',
+      severity: 'Moderate-to-severe decline',
+      desc: 'Significant structural changes consistent with moderate dementia are observed. The patient likely requires assistance with daily activities. Immediate referral to a neurologist or dementia specialist is strongly advised.'
+    }
+  };
+
+  let uploadedFile = null;
+
+  const uploadArea   = document.getElementById('upload-area');
+  const fileInput    = document.getElementById('file-input');
+  const previewSec   = document.getElementById('preview-section');
+  const previewImg   = document.getElementById('preview-img');
+  const previewFname = document.getElementById('preview-filename');
+  const removeBtn    = document.getElementById('remove-btn');
+  const uploadError  = document.getElementById('upload-error');
+  const submitBtn    = document.getElementById('submit-btn');
+  const resetBtn     = document.getElementById('reset-btn');
+  const formSec      = document.getElementById('form-section');
+  const loadingSec   = document.getElementById('loading-section');
+  const resultSec    = document.getElementById('result-section');
+  const loadingText  = document.getElementById('loading-text');
+  const apiError     = document.getElementById('api-error');
+  const apiErrorText = document.getElementById('api-error-text');
+
+  uploadArea.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) setFile(e.target.files[0]); });
+  uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault(); uploadArea.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) setFile(f);
+  });
+
+  function setFile(f) {
+    uploadedFile = f;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      previewImg.src = ev.target.result;
+      previewFname.textContent = f.name + ' · ' + (f.size / 1024).toFixed(1) + ' KB';
+      uploadArea.style.display = 'none';
+      previewSec.style.display = 'block';
+      uploadError.style.display = 'none';
+    };
+    reader.readAsDataURL(f);
+  }
+
+  removeBtn.addEventListener('click', () => {
+    uploadedFile = null; fileInput.value = '';
+    previewSec.style.display = 'none';
+    uploadArea.style.display = 'block';
+  });
+
+  const LOADING_STEPS = [
+    'Sending scan to server...',
+    'Preprocessing MRI image...',
+    'Running inference model...',
+    'Compiling results...'
+  ];
+
+  submitBtn.addEventListener('click', async () => {
+    if (!uploadedFile) { uploadError.style.display = 'flex'; return; }
+    apiError.style.display = 'none';
+
+    const name = document.getElementById('p-name').value.trim();
+    const age  = document.getElementById('p-age').value.trim();
+    const dob  = document.getElementById('p-dob').value.trim();
+
+    const form = new FormData();
+    form.append('file', uploadedFile);
+    if (name) form.append('name', name);
+    if (age)  form.append('age',  age);
+    if (dob)  form.append('dob',  dob);
+
+    formSec.style.display = 'none';
+    loadingSec.style.display = 'block';
+
+    let stepIdx = 0;
+    const tick = () => {
+      loadingText.textContent = LOADING_STEPS[stepIdx];
+      for (let i = 0; i < 4; i++)
+        document.getElementById('step-' + i).classList.toggle('active', i === stepIdx);
+      stepIdx = Math.min(stepIdx + 1, LOADING_STEPS.length - 1);
+    };
+    tick();
+    const timer = setInterval(tick, 700);
+
+    try {
+      const res = await fetch(API_BASE + '/predict', { method: 'POST', body: form });
+      clearInterval(timer);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Server error ' + res.status }));
+        throw new Error(err.detail || 'Server returned ' + res.status);
+      }
+
+      const data = await res.json();
+      loadingSec.style.display = 'none';
+      showResult(data);
+
+    } catch (err) {
+      clearInterval(timer);
+      loadingSec.style.display = 'none';
+      formSec.style.display = 'block';
+      apiErrorText.textContent = err.message || 'Could not reach the server. Make sure FastAPI is running.';
+      apiError.style.display = 'flex';
+    }
+  });
+
+   function showResult(data) {
+    const predClass = data.prediction;
+    const meta = CLASS_META[predClass] || CLASS_META['Non Demented'];
+    const confPct = Math.round(data.confidence * 100);
+
+    document.getElementById('result-patient-name').textContent = data.patient_name || 'Patient';
+    document.getElementById('result-class').textContent  = predClass;
+    document.getElementById('result-class').style.color  = meta.color;
+    document.getElementById('result-dot').style.background = meta.dot;
+    document.getElementById('result-severity').textContent  = meta.severity;
+    document.getElementById('result-conf').textContent      = confPct + '%';
+    document.getElementById('result-conf').style.color      = meta.color;
+    document.getElementById('result-desc').textContent      = meta.desc;
+
+    setTimeout(() => {
+      document.getElementById('result-bar').style.width      = confPct + '%';
+      document.getElementById('result-bar').style.background = meta.color;
+    }, 80);
+
+    const metaRow = document.getElementById('patient-meta-row');
+    metaRow.innerHTML = '';
+    const chips = [
+      data.patient_age  ? { icon: 'ti-calendar', text: data.patient_age + ' yrs' }  : null,
+      data.patient_dob  ? { icon: 'ti-id',       text: data.patient_dob }            : null,
+    ].filter(Boolean);
+    chips.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'meta-chip';
+      el.innerHTML = `<i class="ti ${c.icon}" style="font-size:13px;"></i>${c.text}`;
+      metaRow.appendChild(el);
+    });
+
+    const listEl = document.getElementById('all-classes-list');
+    listEl.innerHTML = '';
+    Object.entries(data.all_confidences)
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([cls, conf]) => {
+        const pct = Math.round(conf * 100);
+        const m   = CLASS_META[cls] || {};
+        const row = document.createElement('div');
+        row.className = 'class-row' + (cls === predClass ? ' winner' : '');
+        row.innerHTML = `
+          <div class="class-lbl">${cls}</div>
+          <div class="mini-bar-wrap"><div class="mini-bar" style="width:0%; background:${m.color||'#888'};"></div></div>
+          <div class="mini-val">${pct}%</div>`;
+        listEl.appendChild(row);
+        setTimeout(() => row.querySelector('.mini-bar').style.width = pct + '%', 120);
+      });
+
+    resultSec.style.display = 'block';
+  }
+
+  resetBtn.addEventListener('click', () => {
+    uploadedFile = null; fileInput.value = '';
+    document.getElementById('p-name').value = '';
+    document.getElementById('p-age').value  = '';
+    document.getElementById('p-dob').value  = '';
+    previewSec.style.display    = 'none';
+    uploadArea.style.display    = 'block';
+    uploadError.style.display   = 'none';
+    apiError.style.display      = 'none';
+    resultSec.style.display     = 'none';
+    formSec.style.display       = 'block';
+  });
+</script>
+</body>
+</html>
